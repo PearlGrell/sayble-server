@@ -1,0 +1,5 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target" : { "namespace": "android_app", "package_name": "com.aryan.sayble",
+               "sha256_cert_fingerprints": ["9D:7A:36:53:33:40:2B:24:24:7F:23:02:03:70:79:E3:5A:52:A4:47:AF:BC:F1:90:0D:3D:36:F1:D8:F3:D2:C5"] }
+}]
