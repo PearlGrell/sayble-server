@@ -4,15 +4,11 @@ import { eq, or } from "drizzle-orm";
 import UserModel from "../model/user";
 import { Context } from "hono";
 import { response, catch_error } from "../helpers/response";
-
-const email_validator = (email: string) => {
-    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return regex.test(email);
-};
+import { validate } from "../helpers/validator";
 
 const response_user = (user: any) => {
-    const { id, isVerified, isLoggedIn, otp, salt, tempPassword, password, ...sanitizedData } = user;
-    return sanitizedData;
+    const { id, isVerified, isLoggedIn, otp, salt, tempPassword, password, ...user_ } = user;
+    return user_;
 };
 
 const query_users = async (email: string, username: string) => {
@@ -24,15 +20,14 @@ const query_users = async (email: string, username: string) => {
 };
 
 export async function createUser(c: Context) {
+
     try {
         const { email, first_name, last_name, dob, username, image } = await c.req.json();
 
-        if (!email || !first_name || !last_name || !dob) {
-            return response(c, 400, "Missing required fields");
-        }
+        const error = validate({ email, first_name, last_name, dob });
 
-        if (!email_validator(email)) {
-            return response(c, 400, "Invalid email address");
+        if (error.length > 0) {
+            return response(c, 400, "Validation Error", error);
         }
 
         const existingUsers = await query_users(email, username);

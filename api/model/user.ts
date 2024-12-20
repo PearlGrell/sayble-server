@@ -25,10 +25,10 @@ class UserModel implements User {
         this.isVerified = 0;
         this.isLoggedIn = 0;
         this.dob = user.dob;
+        this.username = user.username ?? user.email.split('@')[0];
         this.image = user.image ?? "";
         this.createdAt = new Date().toISOString().replace('T', ' ').split('.')[0];
         this.updatedAt = new Date().toISOString().replace('T', ' ').split('.')[0];
-        this.username = user.username ?? `${this.firstName.toLowerCase()}_${this.lastName.toLowerCase()}_${this.dob.split('-')[0]}`;
     }
 }
 

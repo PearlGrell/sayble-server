@@ -1,5 +1,3 @@
-import { Context } from "hono";
-
 export type User = {
     id: string;
     firstName: string; 
@@ -15,4 +13,11 @@ export type User = {
     salt : string;
     createdAt: string;
     updatedAt: string;
+};
+
+export type Validate = {
+    email: string;
+    first_name: string;
+    last_name: string;
+    dob: string;
 };
