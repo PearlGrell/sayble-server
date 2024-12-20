@@ -16,10 +16,3 @@ export type User = {
     createdAt: string;
     updatedAt: string;
 };
-
-export type ResponseParams = {
-    c : Context;
-    status : number;
-    message : string;
-    data? : any;
-}

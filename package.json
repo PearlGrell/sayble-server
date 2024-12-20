@@ -3,6 +3,7 @@
   "scripts": {
     "start": "vercel dev",
     "deploy": "vercel",
+    "test": "bun --hot ./api/test.ts",
     "db:generate": "drizzle-kit generate --config=./api/config/drizzle.config.ts",
     "db:migrate": "drizzle-kit migrate --config=./api/config/drizzle.config.ts",
     "db:studio": "drizzle-kit studio --config=./api/config/drizzle.config.ts"
