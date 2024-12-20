@@ -5,6 +5,7 @@ import UserModel from "../model/user";
 import { Context } from "hono";
 import { response, catch_error } from "../helpers/response";
 import { validate } from "../helpers/validator";
+import { generate_token, verify_token } from "../helpers/json_web_token";
 
 const response_user = (user: any) => {
     const { id, isVerified, isLoggedIn, otp, salt, tempPassword, password, ...user_ } = user;
@@ -49,12 +50,14 @@ export async function createUser(c: Context) {
             image,
         });
 
+        const token = generate_token(newUser.id);
+
         const result = await db.insert(users).values(newUser).returning();
         if (result.length === 0) {
             return response(c, 500, "Failed to create user");
         }
 
-        return response(c, 201, "User created successfully");
+        return response(c, 201, "User created successfully", { token });
     } catch (error) {
         return catch_error(c, error, 500);
     }
@@ -76,22 +79,6 @@ export async function getUserByID(c : Context) {
     }
 }
 
-export async function getUserByToken(c : Context) {
-    try {
-        const header = c.req.header("Authorization");
-
-        if (!header) {
-            return response(c, 401, "Authorization header is required");
-        }
-
-        const token = header.split(" ")[1];
-
-        return response(c, 200, "User Found", { token });
-    } catch (error) {
-        return catch_error(c, error, 500);
-    }
-}
-
 export async function getUsers(c : Context) {
     try {
         const user_ = await db.select().from(users).all();
@@ -103,6 +90,40 @@ export async function getUsers(c : Context) {
         const user = user_.map(response_user);
 
         return response(c, 200, "Users Found", user);
+    } catch (error) {
+        return catch_error(c, error, 500);
+    }
+}
+
+export async function loginUser(c: Context) {
+    try {
+        const { email, password } = await c.req.json();
+
+        const userData = await db.select().from(users).where(eq(users.email, email)).get();
+
+        if (!userData) {
+            return response(c, 404, "User not found");
+        }
+
+        const user = new UserModel({
+            ...userData,
+            password: userData.password ?? undefined,
+            salt: userData.salt ?? undefined,
+            otp: userData.otp ?? undefined,
+        });
+
+        if (!(await user.isUserVerified())) {
+            return response(c, 400, "User is not verified");
+        }
+
+        if (!(await user.verify_password(password))) {
+            return response(c, 400, "Invalid password");
+        }
+
+        user.isLoggedIn = 1;
+        await db.update(users).set({ isLoggedIn: user.isLoggedIn }).where(eq(users.id, user.id)).run();
+
+        return response(c, 200, "User logged in successfully");
     } catch (error) {
         return catch_error(c, error, 500);
     }
